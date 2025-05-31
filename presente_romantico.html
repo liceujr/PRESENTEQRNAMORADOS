@@ -1,0 +1,105 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Presente Romântico</title>
+<style>
+  body { font-family: Arial, sans-serif; max-width: 600px; margin: 20px auto; padding: 10px; }
+  h1 { color: #d6336c; }
+  .fotos img { max-width: 100%; max-height: 300px; margin: 10px 0; border-radius: 10px; }
+  .mensagem { background: #ffe0f0; padding: 10px; border-radius: 8px; margin: 10px 0; white-space: pre-wrap; }
+  #contador { font-weight: bold; color: #b33159; margin-bottom: 20px; }
+  #qrcode { margin-top: 30px; }
+</style>
+</head>
+<body>
+
+<h1>Presente para <span id="nomeCasal"></span></h1>
+<div id="contador"></div>
+
+<div class="fotos">
+  <img id="foto1" src="" alt="Foto 1" style="display:none" />
+  <img id="foto2" src="" alt="Foto 2" style="display:none" />
+</div>
+
+<h3>Mensagem escolhida:</h3>
+<div class="mensagem" id="msgPredefinida"></div>
+
+<h3>Sua mensagem personalizada:</h3>
+<div class="mensagem" id="msgPersonalizada"></div>
+
+<div id="qrcode"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+<script>
+  // Função para ler os parâmetros da URL
+  function getQueryParams() {
+    const params = {};
+    window.location.search.substring(1).split("&").forEach(function(part) {
+      if(!part) return;
+      const item = part.split("=");
+      params[decodeURIComponent(item[0])] = decodeURIComponent(item[1] || "");
+    });
+    return params;
+  }
+
+  function calcularDias(dataInicio) {
+    const inicio = new Date(dataInicio);
+    const hoje = new Date();
+    const diff = hoje - inicio;
+    return Math.floor(diff / (1000*60*60*24));
+  }
+
+  function formatarData(dataStr) {
+    const d = new Date(dataStr);
+    return d.toLocaleDateString("pt-BR", {day: "2-digit", month: "long", year: "numeric"});
+  }
+
+  function montarContador(dataInicio) {
+    const dias = calcularDias(dataInicio);
+    const meses = Math.floor(dias / 30);
+    const anos = Math.floor(meses / 12);
+    const mesesRestantes = meses % 12;
+
+    let texto = `Vocês estão juntos há `;
+
+    if(anos > 0) texto += `${anos} ano${anos > 1 ? 's' : ''} e `;
+    texto += `${mesesRestantes} mês${mesesRestantes !== 1 ? 'es' : ''} (${dias} dias).`;
+    return texto;
+  }
+
+  // MAIN
+  const params = getQueryParams();
+
+  document.getElementById("nomeCasal").textContent = params.nome || "Casal Feliz";
+
+  if(params.data) {
+    document.getElementById("contador").textContent = montarContador(params.data);
+  }
+
+  if(params.foto1) {
+    const img1 = document.getElementById("foto1");
+    img1.src = params.foto1;
+    img1.style.display = "block";
+  }
+
+  if(params.foto2) {
+    const img2 = document.getElementById("foto2");
+    img2.src = params.foto2;
+    img2.style.display = "block";
+  }
+
+  document.getElementById("msgPredefinida").textContent = params.mensagemPredefinida || "Que amor lindo!";
+  document.getElementById("msgPersonalizada").textContent = params.mensagemPersonalizada || "";
+
+  // Gerar QR Code da própria URL
+  const urlAtual = window.location.href;
+  QRCode.toCanvas(document.getElementById("qrcode"), urlAtual, { width: 150 }, function (error) {
+    if (error) console.error(error);
+  });
+
+</script>
+</body>
+</html>
